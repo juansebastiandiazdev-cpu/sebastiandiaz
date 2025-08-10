@@ -176,7 +176,7 @@ export const KnowledgeCenter: React.FC<KnowledgeCenterProps> = (props) => {
                 const articleTitle = href.substring(10);
                 const linkedArticle = allArticles.find(a => a.title.toLowerCase() === articleTitle.toLowerCase());
                 if(linkedArticle) {
-                    return `<a href="#" data-article-id="${linkedArticle.id}" title="Go to article: ${linkedArticle.title}" class="internal-link">${text}</a>`;
+                    return `<button type="button" data-article-id="${linkedArticle.id}" title="Go to article: ${linkedArticle.title}" class="internal-link">${text}</button>`;
                 }
             }
             return `<a href="${href}" title="${title || ''}" target="_blank" rel="noopener noreferrer">${text}</a>`;
@@ -191,7 +191,7 @@ export const KnowledgeCenter: React.FC<KnowledgeCenterProps> = (props) => {
     
     const handleContentClick = useCallback((e: MouseEvent) => {
         const target = e.target as HTMLElement;
-        if (target.matches('a.internal-link')) {
+        if (target.matches('button.internal-link')) {
             e.preventDefault();
             const articleId = target.getAttribute('data-article-id');
             if (articleId) {

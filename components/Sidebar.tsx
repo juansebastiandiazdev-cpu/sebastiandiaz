@@ -14,13 +14,10 @@ interface NavItemProps {
 }
 
 const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick, isCollapsed }) => (
-  <a
-    href="#"
+  <button
+    type="button"
     title={isCollapsed ? label : undefined}
-    onClick={(e) => {
-        e.preventDefault();
-        onClick();
-    }}
+    onClick={onClick}
     className={`relative flex items-center text-sm font-medium rounded-md transition-all duration-200 group
       ${isCollapsed ? 'justify-center h-11 w-11' : 'px-3 py-2.5'}
       ${active
@@ -32,7 +29,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick, isColla
     <span className={`transition-transform duration-200 group-hover:scale-110 ${isCollapsed ? '' : 'mr-3'}`}>{icon}</span>
     <span className={`${isCollapsed ? 'sr-only' : 'whitespace-nowrap'}`}>{label}</span>
     {active && isCollapsed && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4/5 h-0.5 bg-core-accent rounded-full"></div>}
-  </a>
+  </button>
 );
 
 interface SidebarProps {

@@ -39,6 +39,14 @@ export interface AIInsight {
     };
 }
 
+export interface AICommand {
+    action: 'navigate' | 'answer' | 'clarify';
+    view?: View;
+    filter?: Record<string, unknown>;
+    itemId?: string;
+    text?: string;
+}
+
 
 // Base Enums
 export enum ClientStatus {
