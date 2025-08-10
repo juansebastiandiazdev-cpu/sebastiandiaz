@@ -2,16 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
-import { Dashboard } from './components/Dashboard';
-import { AccountManagement } from './components/ClientManagement';
-import { TeamManagement } from './components/TeamManagement';
-import { TaskBoard } from './components/TaskBoard';
-import { Leaderboard } from './components/Leaderboard';
-import { MyWeek } from './components/MyWeek';
 import { Login } from './components/Login';
-import { PerformanceHub } from './components/PerformanceHub';
-import { KnowledgeCenter } from './components/KnowledgeCenter';
-import { Reports } from './components/Reports';
 import { LoadingOverlay } from './components/LoadingOverlay';
 import { AIAssistant } from './components/AIAssistant';
 import { ClientModal } from './components/ClientModal';
@@ -20,18 +11,21 @@ import { TeamMemberModal } from './components/TeamMemberModal';
 import { ToastContainer } from './components/ToastContainer';
 import { SearchIcon, BellIcon, SparklesIcon, XIcon, LoaderCircleIcon, AlertTriangleIcon, InfoIcon, CheckCircleIcon } from './components/Icons';
 import { useDataContext } from './contexts/DataContext';
-import { TeamMember, View, Client, Task, AIInsight } from './types';
+import { TeamMember, View, Client, Task, AIInsight, AICommand } from './types';
 import { PublicDashboardPage } from './components/PublicDashboardPage';
 import { useToasts } from './hooks/useToasts';
-import { DataManagement } from './components/DataManagement';
 import { api, setApiKeyErrorHandler } from './services/api';
 import { QuickAddMenu } from './components/QuickAddMenu';
 import { ApiKeyWarningBanner } from './components/ApiKeyWarningBanner';
 import { ThemeSwitcher } from './components/ui/ThemeSwitcher';
+import { ViewRouter } from './components/ViewRouter';
 
-type ModalState = {
-  type: 'task' | 'account' | 'team' | null;
-  data: any | null;
+type ModalType = 'task' | 'account' | 'team';
+type ModalData = Task | Client | TeamMember | null;
+
+interface ModalState {
+  type: ModalType | null;
+  data: ModalData;
 }
 
 export const App: React.FC = () => {
@@ -107,7 +101,7 @@ export const App: React.FC = () => {
         return () => clearTimeout(timer);
     }, [activeView, currentUser, isLoadingApp, hasFetchedInsights, accounts, teamMembers, tasks, publicPageInfo, addToast]);
     
-    const handleAICommand = (command: any) => {
+    const handleAICommand = (command: AICommand | null) => {
         if(!command) {
             addToast("Sorry, I couldn't process that request.", "error");
             return;
@@ -149,7 +143,7 @@ export const App: React.FC = () => {
         }
     };
 
-    const handleOpenModal = (type: 'task' | 'account' | 'team', data: any) => {
+    const handleOpenModal = (type: ModalType, data: ModalData) => {
         setModalState({ type, data });
     };
 
@@ -157,142 +151,6 @@ export const App: React.FC = () => {
         setModalState({ type: null, data: null });
     };
 
-    const renderView = () => {
-        if (!currentUser) return null;
-        switch (activeView) {
-            case 'dashboard':
-                return <Dashboard 
-                    user={currentUser}
-                    tasks={tasks}
-                    clients={accounts}
-                    teamMembers={teamMembers}
-                    shoutOuts={context.shoutOuts}
-                    setActiveView={setActiveView}
-                    navigateToTasks={context.navigateToTasks}
-                    navigateToClients={context.navigateToAccounts}
-                    navigateToTeamMember={context.navigateToTeamMember}
-                    isLoading={isLoadingApp}
-                    aiInsights={aiInsights}
-                    kpiGroups={context.kpiGroups}
-                    kpiProgress={context.kpiProgress}
-                />;
-            case 'accounts':
-                return <AccountManagement 
-                    currentUser={currentUser}
-                    accounts={accounts}
-                    teamMembers={teamMembers}
-                    tasks={tasks}
-                    onSaveAccount={context.handleSaveAccount}
-                    onDeleteAccount={context.handleDeleteAccount}
-                    navigateToTeamMember={context.navigateToTeamMember}
-                    navigateToTask={context.navigateToTasks}
-                    preselectedAccountId={context.preselectedAccountId}
-                    clearPreselectedAccount={() => context.setPreselectedAccountId(null)}
-                    accountFilter={context.accountFilter}
-                    clearAccountFilter={() => context.setAccountFilter(null)}
-                    kpiGroups={context.kpiGroups}
-                    kpiProgress={context.kpiProgress}
-                    weeklySnapshots={context.weeklySnapshots}
-                    onOpenModal={handleOpenModal}
-                />;
-            case 'team':
-                return <TeamManagement
-                    currentUser={currentUser}
-                    teamMembers={teamMembers}
-                    tasks={tasks}
-                    clients={accounts}
-                    onSaveTeamMember={context.handleSaveTeamMember}
-                    onDeleteTeamMember={context.handleDeleteTeamMember}
-                    kpiGroups={context.kpiGroups}
-                    kpiProgress={context.kpiProgress}
-                    weeklySnapshots={context.weeklySnapshots}
-                    onUpdateKpiProgress={context.handleUpdateKpiProgress}
-                    onSaveHistoricalSnapshot={context.handleSaveHistoricalSnapshot}
-                    navigateToClient={context.navigateToAccounts}
-                    navigateToTask={context.navigateToTasks}
-                    preselectedTeamMemberId={context.preselectedTeamMemberId}
-                    clearPreselectedTeamMember={() => context.setPreselectedTeamMemberId(null)}
-                    onOpenModal={handleOpenModal}
-                />;
-            case 'tasks':
-                return <TaskBoard
-                    user={currentUser}
-                    initialFilter={context.taskFilter}
-                    clearFilter={() => context.setTaskFilter(null)}
-                    tasks={tasks}
-                    clients={accounts}
-                    teamMembers={teamMembers}
-                    onTaskStatusChange={context.handleTaskStatusChange}
-                    onGenerateBulkTasks={context.handleGenerateBulkTasks}
-                    navigateToClient={context.navigateToAccounts}
-                    navigateToTeamMember={context.navigateToTeamMember}
-                    preselectedTaskId={context.preselectedTaskId}
-                    clearPreselectedTask={() => context.setPreselectedTaskId(null)}
-                    onOpenModal={handleOpenModal}
-                    onSaveTask={context.handleSaveTask}
-                />;
-            case 'leaderboard':
-                return <Leaderboard
-                    user={currentUser}
-                    teamMembers={teamMembers}
-                    shoutOuts={context.shoutOuts}
-                    departmentalRankings={context.departmentalRankings}
-                    onAddShoutOut={context.handleAddShoutOut}
-                    onSaveTeamMember={context.handleSaveTeamMember}
-                    tasks={tasks}
-                    clients={accounts}
-                    weeklySnapshots={context.weeklySnapshots}
-                    navigateToTeamMember={context.navigateToTeamMember}
-                    navigateToClient={context.navigateToAccounts}
-                    navigateToTask={context.navigateToTasks}
-                    kpiGroups={context.kpiGroups}
-                    kpiProgress={context.kpiProgress}
-                    onUpdateKpiProgress={context.handleUpdateKpiProgress}
-                    onSaveHistoricalSnapshot={context.handleSaveHistoricalSnapshot}
-                />;
-            case 'my-week':
-                return <MyWeek
-                    user={currentUser}
-                    navigateToTasks={context.navigateToTasks}
-                    tasks={tasks}
-                    onOpenModal={handleOpenModal}
-                />;
-            case 'knowledge-center':
-                return <KnowledgeCenter
-                    articles={context.articles}
-                    allArticles={context.articles}
-                    currentUser={currentUser}
-                    onSaveArticle={context.handleSaveArticle}
-                    onDeleteArticle={context.handleDeleteArticle}
-                    onSaveComment={context.handleSaveComment}
-                    onRestoreVersion={context.handleRestoreArticleVersion}
-                />;
-            case 'performance':
-                return <PerformanceHub
-                    teamMembers={teamMembers}
-                    weeklySnapshots={context.weeklySnapshots}
-                    kpiGroups={context.kpiGroups}
-                    kpiProgress={context.kpiProgress}
-                    onEndWeek={context.handleEndWeek}
-                    onSaveKpiGroup={context.handleSaveKpiGroup}
-                    onDeleteKpiGroup={context.handleDeleteKpiGroup}
-                    navigateToTeamMember={context.navigateToTeamMember}
-                />;
-            case 'reports':
-                return <Reports
-                    clients={accounts}
-                    tasks={tasks}
-                    teamMembers={teamMembers}
-                    weeklySnapshots={context.weeklySnapshots}
-                    kpiGroups={context.kpiGroups}
-                    kpiProgress={context.kpiProgress}
-                />;
-            case 'datamanagement':
-                return <DataManagement />;
-            default:
-                return <div>Not implemented</div>;
-        }
-    };
 
     if (publicPageInfo?.page === 'public-dashboard') {
         return <PublicDashboardPage clientId={publicPageInfo.id} />;
@@ -353,7 +211,12 @@ export const App: React.FC = () => {
                 </header>
                 {isApiKeyInvalid && <ApiKeyWarningBanner />}
                 <div className="flex-1 overflow-y-auto">
-                    {renderView()}
+                    <ViewRouter
+                        activeView={activeView}
+                        aiInsights={aiInsights}
+                        handleOpenModal={handleOpenModal}
+                        setActiveView={setActiveView}
+                    />
                 </div>
             </main>
 

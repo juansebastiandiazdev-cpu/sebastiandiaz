@@ -1,7 +1,7 @@
 
 import {
     AIInsight, BusinessReview, Client, PtlFactor, KpiReportData, ScheduleResponse,
-    Task, TeamMember, WeeklyPerformanceSnapshot, TeamPerformanceReportData, ClientHealthReportData, TaskHotspotsReportData, PtlReport, CoachingFeedForward, TaskStatus, TaskPriority, ApiScheduledTaskInfo, ScheduledTask, Article
+    Task, TeamMember, WeeklyPerformanceSnapshot, TeamPerformanceReportData, ClientHealthReportData, TaskHotspotsReportData, PtlReport, CoachingFeedForward, TaskStatus, TaskPriority, ApiScheduledTaskInfo, ScheduledTask, Article, AICommand
 } from '../types';
 
 // A global error handler for the API key
@@ -11,17 +11,20 @@ export const setApiKeyErrorHandler = (handler: () => void) => {
     onApiKeyError = handler;
 };
 
-// This function would ideally check the environment variable.
-const checkApiKey = () => {
-    // In a real scenario, this might check if a key is stored in memory,
-    // but the actual validation happens on the server.
-    // We keep this to potentially trigger the banner early if we know the key is missing.
-    return true;
+// Check for the presence of an API key. If missing, trigger the handler and return false
+const checkApiKey = (): boolean => {
+    const hasKey = Boolean(import.meta.env.VITE_API_KEY);
+    if (!hasKey) {
+        onApiKeyError();
+    }
+    return hasKey;
 };
 
-const callApi = async <T,>(endpoint: string, body: any): Promise<T> => {
+const callApi = async <T, B = unknown>(endpoint: string, body: B): Promise<T> => {
+    if (!checkApiKey()) {
+        throw new Error('Missing API key');
+    }
     try {
-        checkApiKey();
         const response = await fetch(`/api/${endpoint}`, {
             method: 'POST',
             headers: {
@@ -55,7 +58,7 @@ export const api = {
     },
         
     conversationalSearch: async (query: string, contextData: { clients: Client[], tasks: Task[], teamMembers: TeamMember[] }) => {
-        return callApi<{ command: any }>('conversationalSearch', { query, contextData });
+        return callApi<{ command: AICommand }>('conversationalSearch', { query, contextData });
     },
         
     aiAssistant: async (payload: { prompt: string, context: any, history: any[] }) => {
